@@ -113,6 +113,30 @@ const schedule: ScheduleItem[] = [
   { date: "6/13", city: "Brisbane", title: "귀국", time: "11:10 출발", note: "브리즈번에서 인천으로 귀국" },
 ];
 
+const transportCompare: TransportCompare[] = [
+  {
+    title: "기차 + 트램",
+    duration: "약 1시간 40분 ~ 2시간 10분",
+    cost: "약 AUD 20~30",
+    level: "가성비",
+    note: "짐이 아주 많지 않으면 가장 무난. 비용 절약에 유리.",
+  },
+  {
+    title: "우버",
+    duration: "약 1시간 ~ 1시간 20분",
+    cost: "약 AUD 120~180",
+    level: "편의성",
+    note: "짐 많고 아이 동반이면 제일 편함. 시간은 빠르지만 가격이 높음.",
+  },
+  {
+    title: "택시",
+    duration: "약 1시간 ~ 1시간 20분",
+    cost: "약 AUD 150~200+",
+    level: "즉시성",
+    note: "바로 타기 쉽지만 우버보다 더 비싸질 수 있음.",
+  },
+];
+
 const flightBookings: FlightBooking[] = [
   {
     title: "국제선 출국 1",
@@ -387,9 +411,17 @@ function AppCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-3xl border border-slate-200 bg-white/90 shadow-sm ${className}`}>
+    <div className={`rounded-[28px] border border-slate-200 bg-white/95 shadow-sm ${className}`}>
       {children}
     </div>
+  );
+}
+
+function MiniPill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+      {children}
+    </span>
   );
 }
 
@@ -488,14 +520,16 @@ export default function Home() {
 
   if (!isAuth) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#0b1020] px-4">
-        <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-xl">
-          <div className="mb-4 text-4xl">🔐</div>
+      <main className="flex min-h-screen items-center justify-center bg-[#0c1224] px-4">
+        <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-center shadow-2xl">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-2xl text-white">
+            🔐
+          </div>
           <h2 className="mb-2 text-xl font-bold">여행 페이지</h2>
-          <p className="mb-4 text-sm text-slate-500">비밀번호를 입력하면 입장할 수 있어요.</p>
+          <p className="mb-4 text-sm text-slate-500">가족용 비공개 페이지예요.</p>
           <input
             type="password"
-            className="mb-3 w-full rounded-2xl border p-3"
+            className="mb-3 w-full rounded-2xl border border-slate-200 p-3"
             placeholder="비밀번호 입력"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -515,22 +549,22 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f7fb] pb-24">
+    <main className="min-h-screen bg-gradient-to-b from-[#eef4ff] to-[#f7f9fc] pb-24">
       <div className="mx-auto max-w-6xl px-4 py-4 md:px-6 md:py-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-sky-700">Australia Travel</p>
+            <p className="text-[11px] uppercase tracking-[0.22em] text-sky-700">Travel App</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">
-              Sydney · Gold Coast · Brisbane
+              Australia Family Trip
             </h1>
           </div>
-          <div className="rounded-2xl bg-slate-900 px-3 py-2 text-right text-white">
-            <p className="text-[11px] text-slate-300">AUD/KRW</p>
+          <div className="rounded-2xl bg-slate-900 px-3 py-2 text-right text-white shadow-sm">
+            <p className="text-[10px] text-slate-300">AUD / KRW</p>
             <p className="text-sm font-bold">{formatKrw(audToKrw)}</p>
           </div>
         </div>
 
-        <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+        <div className="mb-5 flex gap-2 overflow-x-auto pb-1 md:hidden">
           {[
             { key: "home", label: "홈" },
             { key: "flights", label: "항공" },
@@ -555,41 +589,92 @@ export default function Home() {
           })}
         </div>
 
+        <div className="mb-5 hidden gap-2 md:flex">
+          {[
+            { key: "home", label: "홈" },
+            { key: "flights", label: "항공권" },
+            { key: "stays", label: "숙소" },
+            { key: "places", label: "장소" },
+            { key: "checklist", label: "체크리스트" },
+          ].map((item) => {
+            const active = mainTab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setMainTab(item.key as MainTab)}
+                className={`rounded-full px-4 py-2.5 text-sm font-semibold ${
+                  active
+                    ? "bg-slate-900 text-white"
+                    : "border border-slate-200 bg-white text-slate-600"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
         {mainTab === "home" && (
           <div className="space-y-5">
-            <AppCard className="p-4 md:p-5">
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">출발까지</p>
-                  <p className="mt-1 text-xl font-bold">{dday >= 0 ? `D-${dday}` : "여행 시작"}</p>
+            <AppCard className="overflow-hidden p-5 md:p-6">
+              <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">6/4 ~ 6/13</p>
+                  <h2 className="mt-1 text-2xl font-bold text-slate-900 md:text-3xl">
+                    시드니 · 골드코스트 · 브리즈번
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600 md:text-base">
+                    항공, 숙소, 날씨, 장소, 준비물까지 앱처럼 한 번에 관리.
+                  </p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">총 비용</p>
-                  <p className="mt-1 text-xl font-bold">{Math.round(totalCost).toLocaleString()}원</p>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">항공 예약</p>
-                  <p className="mt-1 text-xl font-bold">{totalFlightCount}건</p>
-                </div>
-                <div className="rounded-2xl bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Meal 포함</p>
-                  <p className="mt-1 text-xl font-bold">{mealIncludedCount}명</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <p className="text-xs text-slate-500">출발까지</p>
+                    <p className="mt-1 text-xl font-bold">{dday >= 0 ? `D-${dday}` : "여행 시작"}</p>
+                  </div>
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-xs text-slate-500">Meal 포함</p>
+                    <p className="mt-1 text-xl font-bold">{mealIncludedCount}명</p>
+                  </div>
                 </div>
               </div>
             </AppCard>
 
-            <SectionTitle title="🌤 도시 날씨" />
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <AppCard className="p-4">
+                <p className="text-xs text-slate-500">총 비용</p>
+                <p className="mt-2 text-xl font-bold">{Math.round(totalCost).toLocaleString()}원</p>
+              </AppCard>
+              <AppCard className="p-4">
+                <p className="text-xs text-slate-500">항공 예약</p>
+                <p className="mt-2 text-xl font-bold">{totalFlightCount}건</p>
+              </AppCard>
+              <AppCard className="p-4">
+                <p className="text-xs text-slate-500">숙소</p>
+                <p className="mt-2 text-xl font-bold">{stays.length}곳</p>
+              </AppCard>
+              <AppCard className="p-4">
+                <p className="text-xs text-slate-500">환율 상태</p>
+                <p className="mt-2 text-sm font-semibold">{fxStatus}</p>
+              </AppCard>
+            </div>
+
+            <SectionTitle title="오늘 확인하기" sub="핵심 정보만 빠르게 보기" />
             <div className="grid gap-3 md:grid-cols-3">
               {weatherCities.map((city) => {
                 const item = weather[city.key];
                 return (
                   <AppCard key={city.key} className="p-4">
-                    <p className="text-sm text-slate-500">{city.label}</p>
-                    <p className="mt-2 text-2xl font-bold">
-                      {item ? `${Math.round(item.temperature)}°C` : "--"}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">{weatherCodeToText(item?.code)}</p>
-                    <p className="mt-3 text-sm text-slate-500">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm text-slate-500">{city.label}</p>
+                        <p className="mt-2 text-2xl font-bold">
+                          {item ? `${Math.round(item.temperature)}°C` : "--"}
+                        </p>
+                      </div>
+                      <MiniPill>{weatherCodeToText(item?.code)}</MiniPill>
+                    </div>
+                    <p className="mt-4 text-sm text-slate-500">
                       체감 {item ? `${Math.round(item.apparent)}°C` : "--"} · 바람{" "}
                       {item ? `${Math.round(item.wind)} km/h` : "--"}
                     </p>
@@ -598,18 +683,34 @@ export default function Home() {
               })}
             </div>
 
-            <SectionTitle title="📅 여행 일정" />
+            <SectionTitle title="숙소 결제 / 체크인" />
+            <div className="grid gap-3 md:grid-cols-3">
+              {stays.map((stay, index) => (
+                <AppCard key={`${stay.name}-${index}`} className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm text-slate-500">{stay.city}</p>
+                      <h3 className="mt-1 text-lg font-bold">{stay.name}</h3>
+                    </div>
+                    <MiniPill>{getCountdownLabel(stay.paymentDue, stay.checkIn)}</MiniPill>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">{stay.period}</p>
+                  <p className="mt-1 text-sm text-slate-600">{stay.paymentStatus ?? "확인 필요"}</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    기준일: {stay.paymentDue ?? stay.checkIn ?? "-"}
+                  </p>
+                </AppCard>
+              ))}
+            </div>
+
+            <SectionTitle title="전체 일정" />
             <div className="space-y-3">
               {schedule.map((item, index) => (
                 <AppCard key={`${item.date}-${index}`} className="p-4">
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">{item.date}</span>
-                    <span className="rounded-full bg-sky-100 px-3 py-1 text-xs text-sky-700">{item.city}</span>
-                    {item.time ? (
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-700">
-                        {item.time}
-                      </span>
-                    ) : null}
+                    <MiniPill>{item.date}</MiniPill>
+                    <MiniPill>{item.city}</MiniPill>
+                    {item.time ? <MiniPill>{item.time}</MiniPill> : null}
                   </div>
                   <h3 className="mt-3 text-lg font-bold">{item.title}</h3>
                   <p className="mt-1 text-sm leading-6 text-slate-600">{item.note}</p>
@@ -617,13 +718,13 @@ export default function Home() {
               ))}
             </div>
 
-            <SectionTitle title="🚕 브리즈번 공항 → 골드코스트" />
+            <SectionTitle title="브리즈번 공항 → 골드코스트" />
             <div className="grid gap-3 md:grid-cols-3">
               {transportCompare.map((item, index) => (
                 <AppCard key={`${item.title}-${index}`} className="p-4">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="font-bold">{item.title}</h3>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">{item.level}</span>
+                    <MiniPill>{item.level}</MiniPill>
                   </div>
                   <p className="mt-3 text-sm text-slate-600">소요시간: {item.duration}</p>
                   <p className="mt-1 text-sm text-slate-600">예상비용: {item.cost}</p>
@@ -636,32 +737,29 @@ export default function Home() {
 
         {mainTab === "flights" && (
           <div className="space-y-4">
-            <SectionTitle title="✈️ 항공권 상세" sub="탭으로 분리해서 덜 어지럽게 정리" />
+            <SectionTitle title="항공권 상세" sub="필요할 때만 펼쳐서 보기" />
             {flightBookings.map((flight, index) => {
               const isOpen = openFlight === flight.bookingRef;
-
               return (
                 <AppCard key={`${flight.bookingRef}-${index}`}>
                   <button
                     onClick={() => setOpenFlight(isOpen ? null : flight.bookingRef)}
-                    className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                    className="flex w-full items-center justify-between gap-3 p-4 text-left md:p-5"
                   >
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm text-slate-500">{flight.title}</span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">{flight.flightNo}</span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">{flight.bookingRef}</span>
+                      <div className="flex flex-wrap gap-2">
+                        <MiniPill>{flight.title}</MiniPill>
+                        <MiniPill>{flight.flightNo}</MiniPill>
+                        <MiniPill>{flight.bookingRef}</MiniPill>
                       </div>
-                      <h3 className="mt-2 text-lg font-bold">{flight.route}</h3>
+                      <h3 className="mt-3 text-lg font-bold">{flight.route}</h3>
                       <p className="mt-1 text-sm text-slate-600">{flight.time}</p>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-3 py-2 text-xs">
-                      {isOpen ? "접기 ▲" : "펼치기 ▼"}
-                    </span>
+                    <MiniPill>{isOpen ? "접기" : "펼치기"}</MiniPill>
                   </button>
 
                   {isOpen && (
-                    <div className="border-t border-slate-200 p-4">
+                    <div className="border-t border-slate-200 p-4 md:p-5">
                       <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                         <p>날짜: {flight.date}</p>
                         <p>시간: {flight.time}</p>
@@ -706,53 +804,30 @@ export default function Home() {
 
         {mainTab === "stays" && (
           <div className="space-y-4">
-            <SectionTitle title="🏨 숙소 상세" sub="메리톤도 체크인 기준 D-day 표시" />
-            <div className="grid gap-3 md:grid-cols-3">
-              {stays.map((stay, index) => (
-                <AppCard key={`${stay.name}-${index}`} className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm text-slate-500">{stay.city}</p>
-                      <h3 className="mt-1 text-lg font-bold">{stay.name}</h3>
-                    </div>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">
-                      {getCountdownLabel(stay.paymentDue, stay.checkIn)}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-sm text-slate-600">{stay.period}</p>
-                  <p className="mt-1 text-sm text-slate-600">결제: {stay.price ?? "-"}</p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    기준일: {stay.paymentDue ?? stay.checkIn ?? "-"}
-                  </p>
-                </AppCard>
-              ))}
-            </div>
-
+            <SectionTitle title="숙소 상세" sub="체크인/결제 기준일도 같이 확인" />
             {stays.map((stay, index) => {
               const stayKey = `${stay.city}-${index}`;
               const isOpen = openStay === stayKey;
-
               return (
                 <AppCard key={stayKey}>
                   <button
                     onClick={() => setOpenStay(isOpen ? null : stayKey)}
-                    className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                    className="flex w-full items-center justify-between gap-3 p-4 text-left md:p-5"
                   >
                     <div>
                       <div className="flex flex-wrap gap-2">
-                        <span className="text-sm text-slate-500">{stay.city}</span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">{stay.nights}</span>
+                        <MiniPill>{stay.city}</MiniPill>
+                        <MiniPill>{stay.nights}</MiniPill>
+                        <MiniPill>{getCountdownLabel(stay.paymentDue, stay.checkIn)}</MiniPill>
                       </div>
-                      <h3 className="mt-2 text-lg font-bold">{stay.name}</h3>
+                      <h3 className="mt-3 text-lg font-bold">{stay.name}</h3>
                       <p className="mt-1 text-sm text-slate-600">{stay.period}</p>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-3 py-2 text-xs">
-                      {isOpen ? "접기 ▲" : "펼치기 ▼"}
-                    </span>
+                    <MiniPill>{isOpen ? "접기" : "펼치기"}</MiniPill>
                   </button>
 
                   {isOpen && (
-                    <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+                    <div className="border-t border-slate-200 p-4 text-sm text-slate-600 md:p-5">
                       <div className="grid gap-2">
                         <p>기간: {stay.period}</p>
                         {stay.checkIn ? <p>체크인: {stay.checkIn}</p> : null}
@@ -776,8 +851,7 @@ export default function Home() {
 
         {mainTab === "places" && (
           <div className="space-y-5">
-            <SectionTitle title="📍 여행지 리스트" sub="카드를 누르면 바로 아래 지도 펼침" />
-
+            <SectionTitle title="여행지 리스트" sub="카드를 누르면 바로 아래 지도 펼침" />
             {["Sydney", "Gold Coast", "Brisbane"].map((city) => {
               const cityPlaces = places.filter((p) => p.city === city);
               if (!cityPlaces.length) return null;
@@ -793,7 +867,7 @@ export default function Home() {
                           <AppCard>
                             <button
                               onClick={() => setOpenPlace(isOpen ? null : place.name)}
-                              className="w-full p-4 text-left"
+                              className="w-full p-4 text-left md:p-5"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div>
@@ -803,9 +877,7 @@ export default function Home() {
                                     <p className="mt-2 text-sm leading-6 text-slate-600">{place.address}</p>
                                   ) : null}
                                 </div>
-                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs">
-                                  {isOpen ? "닫기" : "보기"}
-                                </span>
+                                <MiniPill>{isOpen ? "닫기" : "보기"}</MiniPill>
                               </div>
                             </button>
 
@@ -816,7 +888,7 @@ export default function Home() {
                                   src={getOsmEmbedUrl(place.lat, place.lon)}
                                   className="h-[240px] w-full md:h-[360px]"
                                 />
-                                <div className="flex flex-wrap gap-2 p-4">
+                                <div className="flex flex-wrap gap-2 p-4 md:p-5">
                                   <a
                                     href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`}
                                     target="_blank"
@@ -851,10 +923,10 @@ export default function Home() {
 
         {mainTab === "checklist" && (
           <div className="space-y-5">
-            <SectionTitle title="🧳 여행 준비 체크리스트" />
+            <SectionTitle title="준비 체크리스트" />
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {checklistGroups.map((group, index) => (
-                <AppCard key={`${group.title}-${index}`} className="p-4">
+                <AppCard key={`${group.title}-${index}`} className="p-4 md:p-5">
                   <h3 className="text-lg font-bold">
                     {group.emoji} {group.title}
                   </h3>
@@ -890,12 +962,12 @@ export default function Home() {
               <button
                 key={item.key}
                 onClick={() => setMainTab(item.key as MainTab)}
-                className={`flex min-w-[60px] flex-col items-center rounded-2xl px-3 py-2 text-xs ${
-                  active ? "bg-slate-900 text-white" : "text-slate-600"
+                className={`flex min-w-[62px] flex-col items-center rounded-2xl px-3 py-2 text-[11px] ${
+                  active ? "bg-slate-900 text-white shadow-sm" : "text-slate-600"
                 }`}
               >
                 <span className="text-base">{item.icon}</span>
-                <span className="mt-1">{item.label}</span>
+                <span className="mt-1 font-medium">{item.label}</span>
               </button>
             );
           })}
