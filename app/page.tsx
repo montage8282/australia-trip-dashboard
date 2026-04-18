@@ -468,31 +468,45 @@ export default function Home() {
     453.13 * 1300;
 
   const totalCost = totalFlightCost + totalStayCost;
+const [audToKrw, setAudToKrw] = useState<number | null>(null);
+ useEffect(() => {
+  async function fetchFx() {
+    try {
+      setFxStatus("불러오는 중");
+      const res = await fetch(
+        "https://api.frankfurter.dev/v2/rates?base=AUD&quotes=KRW",
+        { cache: "no-store" }
+      );
 
-  useEffect(() => {
-    async function fetchFx() {
-      try {
-        setFxStatus("불러오는 중");
-        const res = await fetch(
-          "https://api.frankfurter.dev/v2/rates?base=AUD&quotes=KRW",
-          { cache: "no-store" }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const rate = data?.rates?.KRW;
-        if (!rate) throw new Error("KRW rate missing");
-        setAudToKrw(rate);
-        setFxStatus(`업데이트 ${new Date().toLocaleTimeString("ko-KR")}`);
-      } catch (error) {
-        console.error("환율 불러오기 실패", error);
-        setFxStatus("환율 불러오기 실패");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+
+      // v2 응답 대응
+      let rate: number | undefined;
+
+      if (Array.isArray(data)) {
+        rate = data[0]?.rate;
+      } else if (typeof data?.rate === "number") {
+        rate = data.rate;
+      } else if (Array.isArray(data?.data)) {
+        rate = data.data[0]?.rate;
       }
-    }
 
-    fetchFx();
-    const id = setInterval(fetchFx, 1000 * 60 * 10);
-    return () => clearInterval(id);
-  }, []);
+      if (!rate) throw new Error("KRW rate missing");
+
+      setAudToKrw(rate);
+      setFxStatus(`업데이트 ${new Date().toLocaleTimeString("ko-KR")}`);
+    } catch (error) {
+      console.error("환율 불러오기 실패", error);
+      setFxStatus("환율 불러오기 실패");
+    }
+  }
+
+  fetchFx();
+  const id = setInterval(fetchFx, 1000 * 60 * 10);
+  return () => clearInterval(id);
+}, []);
 
   useEffect(() => {
     async function fetchWeather() {
