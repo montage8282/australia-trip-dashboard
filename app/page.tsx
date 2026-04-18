@@ -442,9 +442,8 @@ export default function Home() {
   const [input, setInput] = useState("");
 
   const [mainTab, setMainTab] = useState<MainTab>("home");
-  const [audToKrw, setAudToKrw] = useState<number | null>(910);
-  const [fxStatus, setFxStatus] = useState<string>("기본값 표시 중");
-  const [weather, setWeather] = useState<Record<string, WeatherState>>({});
+const [audToKrw, setAudToKrw] = useState<number | null>(null);
+const [fxStatus, setFxStatus] = useState<string>("불러오는 중");  const [weather, setWeather] = useState<Record<string, WeatherState>>({});
   const [openFlight, setOpenFlight] = useState<string | null>(null);
   const [openStay, setOpenStay] = useState<string | null>(null);
   const [openPlace, setOpenPlace] = useState<string | null>(null);
@@ -468,7 +467,7 @@ export default function Home() {
     453.13 * 1300;
 
   const totalCost = totalFlightCost + totalStayCost;
-const [audToKrw, setAudToKrw] = useState<number | null>(null);
+
  useEffect(() => {
   async function fetchFx() {
     try {
