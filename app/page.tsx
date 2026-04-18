@@ -420,8 +420,8 @@ function getCountdownLabel(targetDate?: string) {
 
 function SectionTitle({ title, sub }: { title: string; sub?: string }) {
   return (
-    <div className="mb-5">
-      <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-slate-900 md:text-2xl">{title}</h2>
       {sub ? <p className="mt-1 text-sm text-slate-500">{sub}</p> : null}
     </div>
   );
@@ -437,9 +437,9 @@ function StatCard({
   sub?: string;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur">
+    <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur md:p-5">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{value}</p>
+      <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{value}</p>
       {sub ? <p className="mt-2 text-sm text-slate-500">{sub}</p> : null}
     </div>
   );
@@ -486,16 +486,12 @@ export default function Home() {
           { cache: "no-store" }
         );
 
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const data = await res.json();
         const rate = data?.rates?.KRW;
 
-        if (!rate) {
-          throw new Error("KRW rate missing");
-        }
+        if (!rate) throw new Error("KRW rate missing");
 
         setAudToKrw(rate);
         setFxStatus(`업데이트 ${new Date().toLocaleTimeString("ko-KR")}`);
@@ -559,12 +555,12 @@ export default function Home() {
 
   if (!isAuth) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-black">
+      <main className="flex min-h-screen items-center justify-center bg-black px-4">
         <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-lg">
           <h2 className="mb-4 text-xl font-bold">🔐 여행 페이지</h2>
           <input
             type="password"
-            className="mb-3 w-full rounded border p-2"
+            className="mb-3 w-full rounded border p-3"
             placeholder="비밀번호 입력"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -574,7 +570,7 @@ export default function Home() {
               if (input === PASSWORD) setIsAuth(true);
               else alert("비밀번호 틀림");
             }}
-            className="w-full rounded bg-black py-2 text-white"
+            className="w-full rounded bg-black py-3 text-white"
           >
             입장
           </button>
@@ -584,23 +580,23 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f5fb] px-4 py-6 text-slate-800 md:px-8 md:py-8">
+    <main className="min-h-screen bg-[#f2f5fb] px-4 py-5 text-slate-800 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl">
-        <header className="relative mb-8 overflow-hidden rounded-[36px] border border-white/60 bg-gradient-to-br from-sky-100 via-white to-indigo-100 p-6 shadow-sm md:p-8">
-          <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-sky-200/40 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-indigo-200/40 blur-3xl" />
+        <header className="relative mb-6 overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-sky-100 via-white to-indigo-100 p-5 shadow-sm md:mb-8 md:rounded-[36px] md:p-8">
+          <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-sky-200/40 blur-3xl md:h-48 md:w-48" />
+          <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-indigo-200/40 blur-3xl md:h-40 md:w-40" />
 
           <div className="relative">
-            <p className="text-sm font-medium uppercase tracking-[0.25em] text-sky-700">
+            <p className="text-xs font-medium uppercase tracking-[0.25em] text-sky-700 md:text-sm">
               Australia Travel Planner
             </p>
 
-            <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-5xl">
                   🇦🇺 Sydney · Gold Coast · Brisbane
                 </h1>
-                <p className="mt-3 text-base leading-7 text-slate-600">
+                <p className="mt-3 text-sm leading-6 text-slate-600 md:text-base md:leading-7">
                   항공, 숙소, 장소, 이동, 체크리스트, 환율, 날씨까지 한 번에 보는 여행 대시보드.
                 </p>
               </div>
@@ -626,7 +622,7 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-6">
           <StatCard label="방문 도시" value="3곳" sub="Sydney / Gold Coast / Brisbane" />
           <StatCard label="총 일정" value="10일" sub="출국일부터 귀국일까지" />
           <StatCard label="항공 예약" value={`${totalFlightCount}건`} sub="예약번호별 상세 표시" />
@@ -637,11 +633,11 @@ export default function Home() {
 
         <section className="mt-8">
           <SectionTitle title="🌤 실시간 도시 날씨" sub="현재 날씨 기준" />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3 md:gap-4">
             {weatherCities.map((city) => {
               const item = weather[city.key];
               return (
-                <div key={city.key} className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+                <div key={city.key} className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-5">
                   <p className="text-sm text-slate-500">{city.label}</p>
                   <h3 className="mt-2 text-2xl font-bold text-slate-900">
                     {item ? `${Math.round(item.temperature)}°C` : "--"}
@@ -659,7 +655,7 @@ export default function Home() {
 
         <section className="mt-8">
           <SectionTitle title="💸 여행 총 비용" sub="현재 환율 기준 대략 계산" />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3 md:gap-4">
             <StatCard label="항공 총 비용" value={`${Math.round(totalFlightCost).toLocaleString()}원`} />
             <StatCard label="숙소 총 비용" value={`${Math.round(totalStayCost).toLocaleString()}원`} />
             <StatCard label="총 합계" value={`${Math.round(totalCost).toLocaleString()}원`} />
@@ -668,9 +664,9 @@ export default function Home() {
 
         <section className="mt-8">
           <SectionTitle title="💳 숙소 결제 카운트다운" sub="자동 결제일이나 체크 포인트를 미리 보기" />
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3 md:gap-4">
             {stays.map((stay, index) => (
-              <div key={`${stay.name}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+              <div key={`${stay.name}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm text-slate-500">{stay.city}</p>
@@ -690,16 +686,16 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+        <section className="mt-8 grid gap-4 xl:grid-cols-2">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">✈️ 항공권 상세</h2>
+              <h2 className="text-lg font-bold text-slate-900 md:text-xl">✈️ 항공권 상세</h2>
               <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">
                 Flight Detail
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {flightBookings.map((flight, index) => {
                 const isOpen = openFlight === flight.bookingRef;
 
@@ -710,9 +706,9 @@ export default function Home() {
                   >
                     <button
                       onClick={() => setOpenFlight(isOpen ? null : flight.bookingRef)}
-                      className="flex w-full items-center justify-between gap-4 p-4 text-left hover:bg-slate-100"
+                      className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-slate-100"
                     >
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm text-slate-500">{flight.title}</p>
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600">
@@ -722,11 +718,13 @@ export default function Home() {
                             {flight.bookingRef}
                           </span>
                         </div>
-                        <h3 className="mt-2 text-lg font-bold text-slate-900">{flight.route}</h3>
+                        <h3 className="mt-2 text-base font-bold text-slate-900 md:text-lg">
+                          {flight.route}
+                        </h3>
                         <p className="mt-1 text-sm text-slate-600">{flight.time}</p>
                       </div>
 
-                      <div className="shrink-0 rounded-full bg-white px-3 py-2 text-sm font-medium text-slate-700">
+                      <div className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 md:text-sm">
                         {isOpen ? "접기 ▲" : "펼치기 ▼"}
                       </div>
                     </button>
@@ -748,7 +746,7 @@ export default function Home() {
                         ) : null}
 
                         <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50">
-                          <table className="min-w-full text-sm">
+                          <table className="min-w-[640px] w-full text-sm">
                             <thead className="bg-slate-100 text-slate-600">
                               <tr>
                                 <th className="px-3 py-2 text-left">이름</th>
@@ -783,15 +781,15 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-6">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">🏨 숙소 상세</h2>
+              <h2 className="text-lg font-bold text-slate-900 md:text-xl">🏨 숙소 상세</h2>
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
                 Stay Detail
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {stays.map((stay, index) => {
                 const stayKey = `${stay.city}-${index}`;
                 const isOpen = openStay === stayKey;
@@ -803,20 +801,22 @@ export default function Home() {
                   >
                     <button
                       onClick={() => setOpenStay(isOpen ? null : stayKey)}
-                      className="flex w-full items-center justify-between gap-4 p-4 text-left hover:bg-slate-100"
+                      className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-slate-100"
                     >
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm text-slate-500">{stay.city}</p>
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600">
                             {stay.nights}
                           </span>
                         </div>
-                        <h3 className="mt-2 text-lg font-bold text-slate-900">{stay.name}</h3>
+                        <h3 className="mt-2 text-base font-bold text-slate-900 md:text-lg">
+                          {stay.name}
+                        </h3>
                         <p className="mt-1 text-sm text-slate-600">{stay.period}</p>
                       </div>
 
-                      <div className="shrink-0 rounded-full bg-white px-3 py-2 text-sm font-medium text-slate-700">
+                      <div className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-medium text-slate-700 md:text-sm">
                         {isOpen ? "접기 ▲" : "펼치기 ▼"}
                       </div>
                     </button>
@@ -846,37 +846,39 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-8 flex flex-wrap gap-3">
-          {[
-            { key: "overview", label: "전체 일정" },
-            { key: "transport", label: "이동" },
-            { key: "places", label: "장소 + 지도" },
-            { key: "checklist", label: "체크리스트" },
-          ].map((item) => {
-            const active = tab === item.key;
-            return (
-              <button
-                key={item.key}
-                onClick={() => setTab(item.key as TabKey)}
-                className={
-                  active
-                    ? "rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
-                    : "rounded-full border border-slate-200 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-white"
-                }
-              >
-                {item.label}
-              </button>
-            );
-          })}
+        <section className="mt-8">
+          <div className="flex gap-2 overflow-x-auto pb-1 md:flex-wrap">
+            {[
+              { key: "overview", label: "전체 일정" },
+              { key: "transport", label: "이동" },
+              { key: "places", label: "장소 + 지도" },
+              { key: "checklist", label: "체크리스트" },
+            ].map((item) => {
+              const active = tab === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setTab(item.key as TabKey)}
+                  className={`whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold shadow-sm ${
+                    active
+                      ? "bg-slate-900 text-white"
+                      : "border border-slate-200 bg-white/80 text-slate-600 hover:bg-white"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         <section className="mt-8">
           {tab === "overview" && (
             <div>
               <SectionTitle title="📅 전체 여행 일정" sub="날짜 기준으로 보기" />
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {schedule.map((item, index) => (
-                  <div key={`${item.date}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+                  <div key={`${item.date}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-5">
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                         {item.date}
@@ -890,8 +892,8 @@ export default function Home() {
                         </span>
                       ) : null}
                     </div>
-                    <h3 className="mt-4 text-xl font-bold text-slate-900">{item.title}</h3>
-                    <p className="mt-2 leading-6 text-slate-600">{item.note}</p>
+                    <h3 className="mt-4 text-lg font-bold text-slate-900 md:text-xl">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600 md:text-base">{item.note}</p>
                   </div>
                 ))}
               </div>
@@ -904,12 +906,12 @@ export default function Home() {
                 title="🚆 이동 정리"
                 sub="기본 이동 목록 + 브리즈번 공항에서 골드코스트 이동 비교"
               />
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2 md:gap-4">
                 {transport.map((item, index) => (
-                  <div key={`${item.route}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+                  <div key={`${item.route}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-5">
                     <p className="text-sm font-medium text-slate-500">{item.type}</p>
-                    <h3 className="mt-2 text-xl font-bold text-slate-900">{item.route}</h3>
-                    <p className="mt-3 leading-6 text-slate-600">{item.note}</p>
+                    <h3 className="mt-2 text-lg font-bold text-slate-900 md:text-xl">{item.route}</h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-600 md:text-base">{item.note}</p>
                   </div>
                 ))}
               </div>
@@ -919,11 +921,11 @@ export default function Home() {
                   title="🚕 브리즈번 공항 → 골드코스트 비교"
                   sub="가족 이동 기준으로 보기 쉽게 정리"
                 />
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-3 md:grid-cols-3 md:gap-4">
                   {transportCompare.map((item, index) => (
-                    <div key={`${item.title}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
+                    <div key={`${item.title}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-5">
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
+                        <h3 className="text-base font-bold text-slate-900 md:text-lg">{item.title}</h3>
                         <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                           {item.level}
                         </span>
@@ -942,29 +944,38 @@ export default function Home() {
 
           {tab === "places" && (
             <div>
-              <SectionTitle title="📍 장소 + 지도 미리보기" sub="왼쪽 선택, 오른쪽 지도" />
-              <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+              <SectionTitle title="📍 장소 + 지도 미리보기" sub="모바일에서는 위아래, PC에서는 좌우 배치" />
+
+              <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr] xl:gap-6">
                 <div className="space-y-8">
                   {groupedPlaces.map(([city, cityPlaces]) => (
                     <div key={city}>
-                      <h3 className="mb-4 text-xl font-bold text-slate-900">{city}</h3>
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <h3 className="mb-4 text-lg font-bold text-slate-900 md:text-xl">{city}</h3>
+                      <div className="grid gap-3 md:grid-cols-2 md:gap-4">
                         {cityPlaces.map((place, index) => (
                           <button
                             key={`${place.name}-${index}`}
                             onClick={() => setSelectedPlace(place)}
-                            className={`rounded-3xl border p-5 text-left shadow-sm transition ${
+                            className={`rounded-3xl border p-4 text-left shadow-sm transition md:p-5 ${
                               selectedPlace.name === place.name
                                 ? "border-slate-900 bg-slate-900 text-white"
                                 : "border-slate-200 bg-white/80 text-slate-800 hover:bg-white"
                             }`}
                           >
-                            <p className={`text-sm ${selectedPlace.name === place.name ? "text-slate-300" : "text-slate-500"}`}>
+                            <p
+                              className={`text-sm ${
+                                selectedPlace.name === place.name ? "text-slate-300" : "text-slate-500"
+                              }`}
+                            >
                               {place.category}
                             </p>
-                            <h4 className="mt-1 text-lg font-bold">{place.name}</h4>
+                            <h4 className="mt-1 text-base font-bold md:text-lg">{place.name}</h4>
                             {place.address ? (
-                              <p className={`mt-3 text-sm leading-6 ${selectedPlace.name === place.name ? "text-slate-200" : "text-slate-600"}`}>
+                              <p
+                                className={`mt-3 text-sm leading-6 ${
+                                  selectedPlace.name === place.name ? "text-slate-200" : "text-slate-600"
+                                }`}
+                              >
                                 {place.address}
                               </p>
                             ) : null}
@@ -977,9 +988,9 @@ export default function Home() {
 
                 <div className="xl:sticky xl:top-8">
                   <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-200 p-5">
+                    <div className="border-b border-slate-200 p-4 md:p-5">
                       <p className="text-sm text-slate-500">{selectedPlace.category}</p>
-                      <h3 className="mt-1 text-xl font-bold text-slate-900">{selectedPlace.name}</h3>
+                      <h3 className="mt-1 text-lg font-bold text-slate-900 md:text-xl">{selectedPlace.name}</h3>
                       <p className="mt-2 text-sm leading-6 text-slate-600">
                         {selectedPlace.address ?? selectedPlace.city}
                       </p>
@@ -988,10 +999,10 @@ export default function Home() {
                     <iframe
                       title={selectedPlace.name}
                       src={getOsmEmbedUrl(selectedPlace.lat, selectedPlace.lon)}
-                      className="h-[300px] w-full md:h-[420px]"
+                      className="h-[260px] w-full md:h-[420px]"
                     />
 
-                    <div className="flex flex-wrap gap-2 p-5">
+                    <div className="flex flex-wrap gap-2 p-4 md:p-5">
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${selectedPlace.lat},${selectedPlace.lon}`}
                         target="_blank"
@@ -1019,11 +1030,11 @@ export default function Home() {
 
           {tab === "checklist" && (
             <div>
-              <SectionTitle title="🧳 여행 준비 체크리스트" sub="다음 단계에서 저장 기능 추가 가능" />
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <SectionTitle title="🧳 여행 준비 체크리스트" sub="모바일에서도 한 항목씩 보기 쉽게 정리" />
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 md:gap-4">
                 {checklistGroups.map((group, index) => (
-                  <div key={`${group.title}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm">
-                    <h3 className="text-xl font-bold text-slate-900">
+                  <div key={`${group.title}-${index}`} className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm md:p-5">
+                    <h3 className="text-lg font-bold text-slate-900 md:text-xl">
                       {group.emoji} {group.title}
                     </h3>
                     <div className="mt-4 space-y-3">
@@ -1033,7 +1044,7 @@ export default function Home() {
                           className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
                         >
                           <input type="checkbox" className="h-4 w-4 accent-slate-900" />
-                          <span className="text-slate-700">{item}</span>
+                          <span className="text-sm text-slate-700 md:text-base">{item}</span>
                         </label>
                       ))}
                     </div>
