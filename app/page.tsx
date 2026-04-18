@@ -387,7 +387,7 @@ function getOsmEmbedUrl(lat: number, lon: number) {
 
 function getDDay(targetDate: string) {
   const today = new Date();
-  const target = new Date(targetDate);
+  const target = new Date(`${targetDate}T00:00:00`);
   const diff = target.getTime() - today.getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
@@ -395,9 +395,12 @@ function getDDay(targetDate: string) {
 function getCountdownLabel(targetDate?: string, fallbackDate?: string) {
   const finalDate = targetDate || fallbackDate;
   if (!finalDate) return "일정 없음";
+
+  const target = new Date(`${finalDate}T00:00:00`);
   const today = new Date();
-  const target = new Date(finalDate);
+
   const diff = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
   if (diff > 0) return `D-${diff}`;
   if (diff === 0) return "오늘";
   return "지남";
@@ -422,6 +425,15 @@ function MiniPill({ children }: { children: React.ReactNode }) {
     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
       {children}
     </span>
+  );
+}
+
+function SectionTitle({ title, sub }: { title: string; sub?: string }) {
+  return (
+    <div className="mt-10 mb-4">
+      <h2 className="text-xl font-bold">{title}</h2>
+      {sub ? <p className="mt-1 text-sm text-slate-500">{sub}</p> : null}
+    </div>
   );
 }
 
@@ -860,13 +872,15 @@ export default function Home() {
                 <div key={city}>
                   <h3 className="mb-3 text-lg font-bold">{city}</h3>
                   <div className="space-y-3">
-                    {cityPlaces.map((place) => {
-                      const isOpen = openPlace === place.name;
+                    {cityPlaces.map((place, index) => {
+                      const placeKey = `${place.name}-${index}`;
+                      const isOpen = openPlace === placeKey;
+
                       return (
-                        <div key={place.name}>
+                        <div key={placeKey}>
                           <AppCard>
                             <button
-                              onClick={() => setOpenPlace(isOpen ? null : place.name)}
+                              onClick={() => setOpenPlace(isOpen ? null : placeKey)}
                               className="w-full p-4 text-left md:p-5"
                             >
                               <div className="flex items-start justify-between gap-3">
