@@ -489,8 +489,8 @@ export default function Home() {
     {
       label: "국제선 귀국 1",
      display: "₩629,939",
-      krw: 626939,
-      original: "KRW 626,939",
+      krw: 629939,
+      original: "KRW 629,939",
     },
     {
       label: "국제선 귀국 2",
