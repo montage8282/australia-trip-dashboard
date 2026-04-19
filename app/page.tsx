@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 
 const PASSWORD = "1234";
+const FIXED_AUD_TO_KRW = 1050;
+const FIXED_USD_TO_KRW = 1467;
 
 type MainTab = "home" | "flights" | "stays" | "places" | "checklist";
 
@@ -376,6 +378,14 @@ function formatKrw(value?: number | null) {
   return `${Math.round(value).toLocaleString("ko-KR")}원`;
 }
 
+function formatAud(value: number) {
+  return `AUD ${value.toFixed(2)}`;
+}
+
+function formatUsd(value: number) {
+  return `USD ${value.toFixed(2)}`;
+}
+
 function getOsmEmbedUrl(lat: number, lon: number) {
   const d = 0.02;
   const left = lon - d;
@@ -442,11 +452,14 @@ export default function Home() {
   const [input, setInput] = useState("");
 
   const [mainTab, setMainTab] = useState<MainTab>("home");
-const [audToKrw, setAudToKrw] = useState<number | null>(null);
-const [fxStatus, setFxStatus] = useState<string>("불러오는 중");  const [weather, setWeather] = useState<Record<string, WeatherState>>({});
+  const [audToKrw] = useState<number>(FIXED_AUD_TO_KRW);
+  const [usdToKrw] = useState<number>(FIXED_USD_TO_KRW);
+  const [fxStatus] = useState<string>("고정 환율 사용");
+  const [weather, setWeather] = useState<Record<string, WeatherState>>({});
   const [openFlight, setOpenFlight] = useState<string | null>(null);
   const [openStay, setOpenStay] = useState<string | null>(null);
   const [openPlace, setOpenPlace] = useState<string | null>(null);
+  const [showCostDetail, setShowCostDetail] = useState(false);
 
   const dday = getDDay("2026-06-04");
   const totalFlightCount = flightBookings.length;
@@ -454,58 +467,63 @@ const [fxStatus, setFxStatus] = useState<string>("불러오는 중");  const [we
     .flatMap((f) => f.passengers)
     .filter((p) => p.meal && p.meal !== "없음").length;
 
-  const totalFlightCost =
-    645000 +
-    545400 +
-    402.42 * (audToKrw ?? 910) +
-    580.37 * (audToKrw ?? 910) +
-    693.61 * (audToKrw ?? 910);
+  const flightCostItems = [
+    {
+      label: "국제선 출국 1",
+      display: "₩645,000",
+      krw: 645000,
+      original: "KRW 645,000",
+    },
+    {
+      label: "국제선 출국 2",
+      display: "₩545,400",
+      krw: 545400,
+      original: "KRW 545,400",
+    },
+    {
+      label: "호주 국내선",
+      display: formatAud(402.42),
+      krw: 402.42 * audToKrw,
+      original: formatAud(402.42),
+    },
+    {
+      label: "국제선 귀국 1",
+      display: formatAud(580.37),
+      krw: 580.37 * audToKrw,
+      original: formatAud(580.37),
+    },
+    {
+      label: "국제선 귀국 2",
+      display: formatAud(693.61),
+      krw: 693.61 * audToKrw,
+      original: formatAud(693.61),
+    },
+  ];
 
-  const totalStayCost =
-    864.5 * (audToKrw ?? 910) +
-    463.62 * (audToKrw ?? 910) +
-    453.13 * 1300;
+  const stayCostItems = [
+    {
+      label: "Meriton Suites Mascot Central",
+      display: formatAud(864.5),
+      krw: 864.5 * audToKrw,
+      original: formatAud(864.5),
+    },
+    {
+      label: "Rhapsody Resort",
+      display: formatUsd(453.13),
+      krw: 453.13 * usdToKrw,
+      original: formatUsd(453.13),
+    },
+    {
+      label: "Brisbane One Apartments by CLLIX",
+      display: formatAud(463.62),
+      krw: 463.62 * audToKrw,
+      original: formatAud(463.62),
+    },
+  ];
 
+  const totalFlightCost = flightCostItems.reduce((sum, item) => sum + item.krw, 0);
+  const totalStayCost = stayCostItems.reduce((sum, item) => sum + item.krw, 0);
   const totalCost = totalFlightCost + totalStayCost;
-
- useEffect(() => {
-  async function fetchFx() {
-    try {
-      setFxStatus("불러오는 중");
-      const res = await fetch(
-        "https://api.frankfurter.dev/v2/rates?base=AUD&quotes=KRW",
-        { cache: "no-store" }
-      );
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const data = await res.json();
-
-      // v2 응답 대응
-      let rate: number | undefined;
-
-      if (Array.isArray(data)) {
-        rate = data[0]?.rate;
-      } else if (typeof data?.rate === "number") {
-        rate = data.rate;
-      } else if (Array.isArray(data?.data)) {
-        rate = data.data[0]?.rate;
-      }
-
-      if (!rate) throw new Error("KRW rate missing");
-
-      setAudToKrw(rate);
-      setFxStatus(`업데이트 ${new Date().toLocaleTimeString("ko-KR")}`);
-    } catch (error) {
-      console.error("환율 불러오기 실패", error);
-      setFxStatus("환율 불러오기 실패");
-    }
-  }
-
-  fetchFx();
-  const id = setInterval(fetchFx, 1000 * 60 * 10);
-  return () => clearInterval(id);
-}, []);
 
   useEffect(() => {
     async function fetchWeather() {
@@ -586,6 +604,7 @@ const [fxStatus, setFxStatus] = useState<string>("불러오는 중");  const [we
           <div className="rounded-2xl bg-slate-900 px-3 py-2 text-right text-white shadow-sm">
             <p className="text-[10px] text-slate-300">AUD / KRW</p>
             <p className="text-sm font-bold">{formatKrw(audToKrw)}</p>
+            <p className="mt-1 text-[10px] text-slate-300">USD / KRW {formatKrw(usdToKrw)}</p>
           </div>
         </div>
 
@@ -651,6 +670,9 @@ const [fxStatus, setFxStatus] = useState<string>("불러오는 중");  const [we
                   <p className="mt-2 text-sm leading-6 text-slate-600 md:text-base">
                     항공, 숙소, 날씨, 장소, 준비물까지 앱처럼 한 번에 관리.
                   </p>
+                  <p className="mt-3 text-xs text-slate-500">
+                    환율 기준: 1 AUD = {formatKrw(audToKrw)} / 1 USD = {formatKrw(usdToKrw)}
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl bg-slate-50 p-3">
@@ -669,20 +691,79 @@ const [fxStatus, setFxStatus] = useState<string>("불러오는 중");  const [we
               <AppCard className="p-4">
                 <p className="text-xs text-slate-500">총 비용</p>
                 <p className="mt-2 text-xl font-bold">{Math.round(totalCost).toLocaleString()}원</p>
+                <button
+                  onClick={() => setShowCostDetail(!showCostDetail)}
+                  className="mt-3 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700"
+                >
+                  {showCostDetail ? "상세 닫기" : "상세 보기"}
+                </button>
               </AppCard>
+
               <AppCard className="p-4">
                 <p className="text-xs text-slate-500">항공 예약</p>
                 <p className="mt-2 text-xl font-bold">{totalFlightCount}건</p>
               </AppCard>
+
               <AppCard className="p-4">
                 <p className="text-xs text-slate-500">숙소</p>
                 <p className="mt-2 text-xl font-bold">{stays.length}곳</p>
               </AppCard>
+
               <AppCard className="p-4">
                 <p className="text-xs text-slate-500">환율 상태</p>
                 <p className="mt-2 text-sm font-semibold">{fxStatus}</p>
               </AppCard>
             </div>
+
+            {showCostDetail && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <AppCard className="p-4 md:p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">✈️ 항공권 비용</h3>
+                    <MiniPill>{formatKrw(totalFlightCost)}</MiniPill>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {flightCostItems.map((item, index) => (
+                      <div
+                        key={`${item.label}-${index}`}
+                        className="rounded-2xl bg-slate-50 px-4 py-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-slate-700">{item.label}</p>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {formatKrw(item.krw)}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">{item.original}</p>
+                      </div>
+                    ))}
+                  </div>
+                </AppCard>
+
+                <AppCard className="p-4 md:p-5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">🏨 숙소 비용</h3>
+                    <MiniPill>{formatKrw(totalStayCost)}</MiniPill>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {stayCostItems.map((item, index) => (
+                      <div
+                        key={`${item.label}-${index}`}
+                        className="rounded-2xl bg-slate-50 px-4 py-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-slate-700">{item.label}</p>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {formatKrw(item.krw)}
+                          </p>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">{item.original}</p>
+                      </div>
+                    ))}
+                  </div>
+                </AppCard>
+              </div>
+            )}
 
             <SectionTitle title="오늘 확인하기" sub="핵심 정보만 빠르게 보기" />
             <div className="grid gap-3 md:grid-cols-3">
