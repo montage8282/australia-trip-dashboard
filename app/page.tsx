@@ -470,36 +470,42 @@ export default function Home() {
   const flightCostItems = [
     {
       label: "국제선 출국 1",
-      display: "₩645,000",
-      krw: 645000,
-      original: "KRW 645,000",
+      display: "₩652,293",
+      krw: 652293,
+      original: "KRW 652,293",
     },
     {
       label: "국제선 출국 2",
-      display: "₩545,400",
-      krw: 545400,
-      original: "KRW 545,400",
+      display: "₩551,565",
+      krw: 551565,
+      original: "KRW 551,565",
     },
     {
       label: "호주 국내선",
-      display: formatAud(402.42),
-      krw: 402.42 * audToKrw,
-      original: formatAud(402.42),
+     display: "₩436,799",
+      krw: 436799,
+      original: "KRW 436,799",
     },
     {
       label: "국제선 귀국 1",
-      display: formatAud(580.37),
-      krw: 580.37 * audToKrw,
-      original: formatAud(580.37),
+     display: "₩629,939",
+      krw: 626939,
+      original: "KRW 626,939",
     },
     {
       label: "국제선 귀국 2",
-      display: formatAud(693.61),
-      krw: 693.61 * audToKrw,
-      original: formatAud(693.61),
+     display: "₩752,857",
+      krw: 752857,
+      original: "KRW 752,857",
     },
   ];
-
+const flightCostDetail = [
+  { label: "국제선 출국 1", krw: 652293 },
+  { label: "국제선 출국 2", krw: 551565 },
+  { label: "호주 국내선", krw: 436799 },
+  { label: "국제선 귀국 1", krw: 629939 },
+  { label: "국제선 귀국 2", krw: 752857 },
+];
   const stayCostItems = [
     {
       label: "Meriton Suites Mascot Central",
