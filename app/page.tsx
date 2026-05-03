@@ -1,12 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 const PASSWORD = "1234";
 const FIXED_AUD_TO_KRW = 1050;
 const FIXED_USD_TO_KRW = 1467;
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 type MainTab = "home" | "flights" | "stays" | "places" | "checklist";
+
+type PlaceItem = {
+  id?: string;
+  name: string;
+  city: string;
+  category: string;
+  address?: string;
+  link?: string;
+  note?: string;
+  lat?: number;
+  lon?: number;
+  isDb?: boolean;
+};
 
 type ScheduleItem = {
   date: string;
@@ -57,17 +76,6 @@ type StayItem = {
   paymentStatus?: string;
 };
 
-type PlaceItem = {
-  name: string;
-  city: string;
-  category: string;
-  address?: string;
-  link?: string;
-  note?: string;
-  lat: number;
-  lon: number;
-};
-
 type ChecklistGroup = {
   title: string;
   emoji: string;
@@ -116,27 +124,9 @@ const schedule: ScheduleItem[] = [
 ];
 
 const transportCompare: TransportCompare[] = [
-  {
-    title: "기차 + 트램",
-    duration: "약 1시간 40분 ~ 2시간 10분",
-    cost: "약 AUD 20~30",
-    level: "가성비",
-    note: "짐이 아주 많지 않으면 가장 무난. 비용 절약에 유리.",
-  },
-  {
-    title: "우버",
-    duration: "약 1시간 ~ 1시간 20분",
-    cost: "약 AUD 120~180",
-    level: "편의성",
-    note: "짐 많고 아이 동반이면 제일 편함. 시간은 빠르지만 가격이 높음.",
-  },
-  {
-    title: "택시",
-    duration: "약 1시간 ~ 1시간 20분",
-    cost: "약 AUD 150~200+",
-    level: "즉시성",
-    note: "바로 타기 쉽지만 우버보다 더 비싸질 수 있음.",
-  },
+  { title: "기차 + 트램", duration: "약 1시간 40분 ~ 2시간 10분", cost: "약 AUD 20~30", level: "가성비", note: "짐이 아주 많지 않으면 가장 무난. 비용 절약에 유리." },
+  { title: "우버", duration: "약 1시간 ~ 1시간 20분", cost: "약 AUD 120~180", level: "편의성", note: "짐 많고 아이 동반이면 제일 편함. 시간은 빠르지만 가격이 높음." },
+  { title: "택시", duration: "약 1시간 ~ 1시간 20분", cost: "약 AUD 150~200+", level: "즉시성", note: "바로 타기 쉽지만 우버보다 더 비싸질 수 있음." },
 ];
 
 const flightBookings: FlightBooking[] = [
@@ -151,9 +141,9 @@ const flightBookings: FlightBooking[] = [
     duration: "10시간 15분",
     fromDetail: "서울(인천) / 인천국제공항 제1터미널",
     toDetail: "시드니 / 시드니 공항 T1 국제선",
-    price: "₩645,000",
+    price: "₩652,293",
     passengers: [
-      { name: "MRS MIYOUNG CHO", seat: "28D", cabinBag: "7kg", checkedBag: "20kg", meal: "Meal" },
+      { name: "MRS MIYOUNG CHO", seat: "28D", cabinBag: "7kg", checkedBag: "30kg", meal: "Meal" },
       { name: "MISS HAEL JO", seat: "28C", cabinBag: "7kg", checkedBag: "20kg", meal: "Meal" },
     ],
   },
@@ -168,7 +158,7 @@ const flightBookings: FlightBooking[] = [
     duration: "10시간 15분",
     fromDetail: "서울(인천) / 인천국제공항 제1터미널",
     toDetail: "시드니 / 시드니 공항 T1 국제선",
-    price: "₩545,400",
+    price: "₩551,565",
     passengers: [
       { name: "MR YOUNGJUNE JO", seat: "28A", cabinBag: "7kg", checkedBag: "0kg", meal: "없음" },
       { name: "MSTR DAEL JO", seat: "28B", cabinBag: "7kg", checkedBag: "0kg", meal: "없음" },
@@ -185,10 +175,10 @@ const flightBookings: FlightBooking[] = [
     duration: "1시간 30분",
     fromDetail: "시드니 공항 T2 국내선",
     toDetail: "브리즈번 국내선 터미널",
-    price: "AUD 402.42",
+    price: "₩436,799",
     passengers: [
       { name: "MR youngjune jo", seat: "좌석 선택", cabinBag: "7kg", checkedBag: "20kg", meal: "없음" },
-      { name: "MRS MIYOUNG CHO", seat: "좌석 선택", cabinBag: "7kg", checkedBag: "20kg", meal: "없음" },
+      { name: "MRS MIYOUNG CHO", seat: "좌석 선택", cabinBag: "7kg", checkedBag: "30kg", meal: "없음" },
       { name: "MSTR DAEL JO", seat: "좌석 선택", cabinBag: "7kg", checkedBag: "0kg", meal: "없음" },
       { name: "MISS HAEL JO", seat: "좌석 선택", cabinBag: "7kg", checkedBag: "0kg", meal: "없음" },
     ],
@@ -204,7 +194,7 @@ const flightBookings: FlightBooking[] = [
     duration: "9시간 45분",
     fromDetail: "브리즈번 국제선 터미널",
     toDetail: "서울(인천) / 인천국제공항 제1터미널",
-    price: "AUD 580.37",
+    price: "₩629,939",
     passengers: [
       { name: "MR YOUNGJUNE JO", seat: "33J", cabinBag: "7kg", checkedBag: "0kg", meal: "없음" },
       { name: "MSTR DAEL JO", seat: "33H", cabinBag: "7kg", checkedBag: "0kg", meal: "없음" },
@@ -221,9 +211,9 @@ const flightBookings: FlightBooking[] = [
     duration: "9시간 45분",
     fromDetail: "브리즈번 국제선 터미널",
     toDetail: "서울(인천) / 인천국제공항 제1터미널",
-    price: "AUD 693.61",
+    price: "₩752,857",
     passengers: [
-      { name: "MRS MIYOUNG CHO", seat: "33F", cabinBag: "7kg", checkedBag: "20kg", meal: "Meal" },
+      { name: "MRS MIYOUNG CHO", seat: "33F", cabinBag: "7kg", checkedBag: "30kg", meal: "Meal" },
       { name: "MISS HAEL JO", seat: "33G", cabinBag: "7kg", checkedBag: "20kg", meal: "Meal" },
     ],
   },
@@ -276,7 +266,7 @@ const stays: StayItem[] = [
   },
 ];
 
-const places: PlaceItem[] = [
+const defaultPlaces: PlaceItem[] = [
   {
     name: "Meat in a Park",
     city: "Sydney",
@@ -395,6 +385,16 @@ function getOsmEmbedUrl(lat: number, lon: number) {
   return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lon}`;
 }
 
+function getGoogleMapUrl(place: PlaceItem) {
+  if (place.link) return place.link;
+  if (place.lat && place.lon) {
+    return `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${place.name} ${place.address ?? ""}`
+  )}`;
+}
+
 function getDDay(targetDate: string) {
   const today = new Date();
   const target = new Date(`${targetDate}T00:00:00`);
@@ -461,6 +461,17 @@ export default function Home() {
   const [openPlace, setOpenPlace] = useState<string | null>(null);
   const [showCostDetail, setShowCostDetail] = useState(false);
 
+  const [dbPlaces, setDbPlaces] = useState<PlaceItem[]>([]);
+  const [newPlaceName, setNewPlaceName] = useState("");
+  const [newPlaceCity, setNewPlaceCity] = useState("Sydney");
+  const [newPlaceCategory, setNewPlaceCategory] = useState("가고 싶은 장소");
+  const [newPlaceAddress, setNewPlaceAddress] = useState("");
+  const [newPlaceLink, setNewPlaceLink] = useState("");
+  const [newPlaceMemo, setNewPlaceMemo] = useState("");
+  const [placeStatus, setPlaceStatus] = useState("");
+
+  const allPlaces = [...defaultPlaces, ...dbPlaces];
+
   const dday = getDDay("2026-06-04");
   const totalFlightCount = flightBookings.length;
   const mealIncludedCount = flightBookings
@@ -468,70 +479,101 @@ export default function Home() {
     .filter((p) => p.meal && p.meal !== "없음").length;
 
   const flightCostItems = [
-    {
-      label: "국제선 출국 1",
-      display: "₩652,293",
-      krw: 652293,
-      original: "KRW 652,293",
-    },
-    {
-      label: "국제선 출국 2",
-      display: "₩551,565",
-      krw: 551565,
-      original: "KRW 551,565",
-    },
-    {
-      label: "호주 국내선",
-     display: "₩436,799",
-      krw: 436799,
-      original: "KRW 436,799",
-    },
-    {
-      label: "국제선 귀국 1",
-     display: "₩629,939",
-      krw: 629939,
-      original: "KRW 629,939",
-    },
-    {
-      label: "국제선 귀국 2",
-     display: "₩752,857",
-      krw: 752857,
-      original: "KRW 752,857",
-    },
+    { label: "국제선 출국 1", display: "₩652,293", krw: 652293, original: "KRW 652,293" },
+    { label: "국제선 출국 2", display: "₩551,565", krw: 551565, original: "KRW 551,565" },
+    { label: "호주 국내선", display: "₩436,799", krw: 436799, original: "KRW 436,799" },
+    { label: "국제선 귀국 1", display: "₩629,939", krw: 629939, original: "KRW 629,939" },
+    { label: "국제선 귀국 2", display: "₩752,857", krw: 752857, original: "KRW 752,857" },
   ];
-const flightCostDetail = [
-  { label: "국제선 출국 1", krw: 652293 },
-  { label: "국제선 출국 2", krw: 551565 },
-  { label: "호주 국내선", krw: 436799 },
-  { label: "국제선 귀국 1", krw: 629939 },
-  { label: "국제선 귀국 2", krw: 752857 },
-];
+
   const stayCostItems = [
-    {
-      label: "Meriton Suites Mascot Central",
-      display: formatAud(864.5),
-      krw: 864.5 * audToKrw,
-      original: formatAud(864.5),
-    },
-    {
-      label: "Rhapsody Resort",
-      display: formatUsd(453.13),
-      krw: 453.13 * usdToKrw,
-      original: formatUsd(453.13),
-    },
-    {
-      label: "Brisbane One Apartments by CLLIX",
-      display: formatAud(463.62),
-      krw: 463.62 * audToKrw,
-      original: formatAud(463.62),
-    },
+    { label: "Meriton Suites Mascot Central", display: formatAud(864.5), krw: 864.5 * audToKrw, original: formatAud(864.5) },
+    { label: "Rhapsody Resort", display: formatUsd(453.13), krw: 453.13 * usdToKrw, original: formatUsd(453.13) },
+    { label: "Brisbane One Apartments by CLLIX", display: formatAud(463.62), krw: 463.62 * audToKrw, original: formatAud(463.62) },
   ];
 
   const totalFlightCost = flightCostItems.reduce((sum, item) => sum + item.krw, 0);
   const totalStayCost = stayCostItems.reduce((sum, item) => sum + item.krw, 0);
   const totalCost = totalFlightCost + totalStayCost;
 
+  async function fetchDbPlaces() {
+    const { data, error } = await supabase
+      .from("places")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("장소 불러오기 실패:", error);
+      setPlaceStatus("장소 불러오기 실패");
+      return;
+    }
+
+    const mapped: PlaceItem[] = (data ?? []).map((item) => ({
+      id: item.id,
+      name: item.name ?? "",
+      city: item.city ?? "Sydney",
+      category: item.category ?? "가고 싶은 장소",
+      address: item.address ?? "",
+      link: item.map_url ?? "",
+      note: item.memo ?? "",
+      isDb: true,
+    }));
+
+    setDbPlaces(mapped);
+  }
+
+  async function addDbPlace() {
+    if (!newPlaceName.trim()) {
+      setPlaceStatus("장소명을 입력해줘");
+      return;
+    }
+
+    setPlaceStatus("저장 중");
+
+    const { error } = await supabase.from("places").insert({
+      name: newPlaceName.trim(),
+      city: newPlaceCity,
+      category: newPlaceCategory.trim() || "가고 싶은 장소",
+      address: newPlaceAddress.trim(),
+      map_url: newPlaceLink.trim(),
+      memo: newPlaceMemo.trim(),
+    });
+
+    if (error) {
+      console.error("장소 저장 실패:", error);
+      setPlaceStatus("저장 실패");
+      return;
+    }
+
+    setNewPlaceName("");
+    setNewPlaceAddress("");
+    setNewPlaceLink("");
+    setNewPlaceMemo("");
+    setPlaceStatus("저장 완료");
+    fetchDbPlaces();
+  }
+
+  async function deleteDbPlace(id?: string) {
+    if (!id) return;
+
+    const ok = window.confirm("이 장소를 삭제할까요?");
+    if (!ok) return;
+
+    const { error } = await supabase.from("places").delete().eq("id", id);
+
+    if (error) {
+      console.error("장소 삭제 실패:", error);
+      setPlaceStatus("삭제 실패");
+      return;
+    }
+
+    setPlaceStatus("삭제 완료");
+    fetchDbPlaces();
+  }
+
   useEffect(() => {
+    fetchDbPlaces();
+
     async function fetchWeather() {
       try {
         const results = await Promise.all(
@@ -730,15 +772,10 @@ const flightCostDetail = [
                   </div>
                   <div className="mt-4 space-y-3">
                     {flightCostItems.map((item, index) => (
-                      <div
-                        key={`${item.label}-${index}`}
-                        className="rounded-2xl bg-slate-50 px-4 py-3"
-                      >
+                      <div key={`${item.label}-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-medium text-slate-700">{item.label}</p>
-                          <p className="text-sm font-semibold text-slate-900">
-                            {formatKrw(item.krw)}
-                          </p>
+                          <p className="text-sm font-semibold text-slate-900">{formatKrw(item.krw)}</p>
                         </div>
                         <p className="mt-1 text-xs text-slate-500">{item.original}</p>
                       </div>
@@ -753,15 +790,10 @@ const flightCostDetail = [
                   </div>
                   <div className="mt-4 space-y-3">
                     {stayCostItems.map((item, index) => (
-                      <div
-                        key={`${item.label}-${index}`}
-                        className="rounded-2xl bg-slate-50 px-4 py-3"
-                      >
+                      <div key={`${item.label}-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-medium text-slate-700">{item.label}</p>
-                          <p className="text-sm font-semibold text-slate-900">
-                            {formatKrw(item.krw)}
-                          </p>
+                          <p className="text-sm font-semibold text-slate-900">{formatKrw(item.krw)}</p>
                         </div>
                         <p className="mt-1 text-xs text-slate-500">{item.original}</p>
                       </div>
@@ -780,15 +812,12 @@ const flightCostDetail = [
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-slate-500">{city.label}</p>
-                        <p className="mt-2 text-2xl font-bold">
-                          {item ? `${Math.round(item.temperature)}°C` : "--"}
-                        </p>
+                        <p className="mt-2 text-2xl font-bold">{item ? `${Math.round(item.temperature)}°C` : "--"}</p>
                       </div>
                       <MiniPill>{weatherCodeToText(item?.code)}</MiniPill>
                     </div>
                     <p className="mt-4 text-sm text-slate-500">
-                      체감 {item ? `${Math.round(item.apparent)}°C` : "--"} · 바람{" "}
-                      {item ? `${Math.round(item.wind)} km/h` : "--"}
+                      체감 {item ? `${Math.round(item.apparent)}°C` : "--"} · 바람 {item ? `${Math.round(item.wind)} km/h` : "--"}
                     </p>
                   </AppCard>
                 );
@@ -808,9 +837,7 @@ const flightCostDetail = [
                   </div>
                   <p className="mt-3 text-sm text-slate-600">{stay.period}</p>
                   <p className="mt-1 text-sm text-slate-600">{stay.paymentStatus ?? "확인 필요"}</p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    기준일: {stay.paymentDue ?? stay.checkIn ?? "-"}
-                  </p>
+                  <p className="mt-1 text-sm text-slate-500">기준일: {stay.paymentDue ?? stay.checkIn ?? "-"}</p>
                 </AppCard>
               ))}
             </div>
@@ -963,9 +990,63 @@ const flightCostDetail = [
 
         {mainTab === "places" && (
           <div className="space-y-5">
-            <SectionTitle title="여행지 리스트" sub="카드를 누르면 바로 아래 지도 펼침" />
+            <SectionTitle title="여행지 추가" sub="가족 누구나 같은 링크에서 장소를 추가할 수 있어요" />
+            <AppCard className="p-4 md:p-5">
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  value={newPlaceName}
+                  onChange={(e) => setNewPlaceName(e.target.value)}
+                  placeholder="장소명"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                />
+                <select
+                  value={newPlaceCity}
+                  onChange={(e) => setNewPlaceCity(e.target.value)}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                >
+                  <option value="Sydney">Sydney</option>
+                  <option value="Gold Coast">Gold Coast</option>
+                  <option value="Brisbane">Brisbane</option>
+                </select>
+                <input
+                  value={newPlaceCategory}
+                  onChange={(e) => setNewPlaceCategory(e.target.value)}
+                  placeholder="카테고리"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                />
+                <input
+                  value={newPlaceAddress}
+                  onChange={(e) => setNewPlaceAddress(e.target.value)}
+                  placeholder="주소"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                />
+                <input
+                  value={newPlaceLink}
+                  onChange={(e) => setNewPlaceLink(e.target.value)}
+                  placeholder="구글맵 링크"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm md:col-span-2"
+                />
+                <input
+                  value={newPlaceMemo}
+                  onChange={(e) => setNewPlaceMemo(e.target.value)}
+                  placeholder="메모"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm md:col-span-2"
+                />
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  onClick={addDbPlace}
+                  className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white"
+                >
+                  장소 추가
+                </button>
+                {placeStatus ? <p className="text-sm text-slate-500">{placeStatus}</p> : null}
+              </div>
+            </AppCard>
+
+            <SectionTitle title="여행지 리스트" sub="카드를 누르면 바로 아래 지도 또는 구글맵 링크가 열려요" />
             {["Sydney", "Gold Coast", "Brisbane"].map((city) => {
-              const cityPlaces = places.filter((p) => p.city === city);
+              const cityPlaces = allPlaces.filter((p) => p.city === city);
               if (!cityPlaces.length) return null;
 
               return (
@@ -973,8 +1054,9 @@ const flightCostDetail = [
                   <h3 className="mb-3 text-lg font-bold">{city}</h3>
                   <div className="space-y-3">
                     {cityPlaces.map((place, index) => {
-                      const placeKey = `${place.name}-${index}`;
+                      const placeKey = `${place.id ?? place.name}-${index}`;
                       const isOpen = openPlace === placeKey;
+                      const hasMap = typeof place.lat === "number" && typeof place.lon === "number";
 
                       return (
                         <div key={placeKey}>
@@ -985,10 +1067,16 @@ const flightCostDetail = [
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div>
-                                  <p className="text-sm text-slate-500">{place.category}</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    <p className="text-sm text-slate-500">{place.category}</p>
+                                    {place.isDb ? <MiniPill>추가됨</MiniPill> : null}
+                                  </div>
                                   <h4 className="mt-1 text-lg font-bold">{place.name}</h4>
                                   {place.address ? (
                                     <p className="mt-2 text-sm leading-6 text-slate-600">{place.address}</p>
+                                  ) : null}
+                                  {place.note ? (
+                                    <p className="mt-1 text-sm leading-6 text-slate-500">{place.note}</p>
                                   ) : null}
                                 </div>
                                 <MiniPill>{isOpen ? "닫기" : "보기"}</MiniPill>
@@ -997,14 +1085,20 @@ const flightCostDetail = [
 
                             {isOpen && (
                               <div className="border-t border-slate-200">
-                                <iframe
-                                  title={place.name}
-                                  src={getOsmEmbedUrl(place.lat, place.lon)}
-                                  className="h-[240px] w-full md:h-[360px]"
-                                />
+                                {hasMap ? (
+                                  <iframe
+                                    title={place.name}
+                                    src={getOsmEmbedUrl(place.lat!, place.lon!)}
+                                    className="h-[240px] w-full md:h-[360px]"
+                                  />
+                                ) : (
+                                  <div className="p-4 text-sm text-slate-500">
+                                    직접 추가한 장소는 위도/경도 대신 구글맵 링크로 연결됩니다.
+                                  </div>
+                                )}
                                 <div className="flex flex-wrap gap-2 p-4 md:p-5">
                                   <a
-                                    href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`}
+                                    href={getGoogleMapUrl(place)}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white"
@@ -1018,8 +1112,16 @@ const flightCostDetail = [
                                       rel="noreferrer"
                                       className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
                                     >
-                                      공식 사이트
+                                      등록한 링크
                                     </a>
+                                  ) : null}
+                                  {place.isDb ? (
+                                    <button
+                                      onClick={() => deleteDbPlace(place.id)}
+                                      className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700"
+                                    >
+                                      삭제
+                                    </button>
                                   ) : null}
                                 </div>
                               </div>
