@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const PASSWORD = "1234";
@@ -13,19 +13,6 @@ const supabase = createClient(
 );
 
 type MainTab = "home" | "flights" | "stays" | "places" | "checklist";
-
-type PlaceItem = {
-  id?: string;
-  name: string;
-  city: string;
-  category: string;
-  address?: string;
-  link?: string;
-  note?: string;
-  lat?: number;
-  lon?: number;
-  isDb?: boolean;
-};
 
 type ScheduleItem = {
   date: string;
@@ -55,7 +42,6 @@ type FlightBooking = {
   fromDetail: string;
   toDetail: string;
   price: string;
-  note?: string;
   passengers: FlightPassenger[];
 };
 
@@ -74,6 +60,19 @@ type StayItem = {
   email?: string;
   paymentDue?: string;
   paymentStatus?: string;
+};
+
+type PlaceItem = {
+  id?: string;
+  name: string;
+  city: string;
+  category: string;
+  address?: string;
+  link?: string;
+  note?: string;
+  lat?: number;
+  lon?: number;
+  isDb?: boolean;
 };
 
 type ChecklistGroup = {
@@ -124,9 +123,27 @@ const schedule: ScheduleItem[] = [
 ];
 
 const transportCompare: TransportCompare[] = [
-  { title: "기차 + 트램", duration: "약 1시간 40분 ~ 2시간 10분", cost: "약 AUD 20~30", level: "가성비", note: "짐이 아주 많지 않으면 가장 무난. 비용 절약에 유리." },
-  { title: "우버", duration: "약 1시간 ~ 1시간 20분", cost: "약 AUD 120~180", level: "편의성", note: "짐 많고 아이 동반이면 제일 편함. 시간은 빠르지만 가격이 높음." },
-  { title: "택시", duration: "약 1시간 ~ 1시간 20분", cost: "약 AUD 150~200+", level: "즉시성", note: "바로 타기 쉽지만 우버보다 더 비싸질 수 있음." },
+  {
+    title: "기차 + 트램",
+    duration: "약 1시간 40분 ~ 2시간 10분",
+    cost: "약 AUD 20~30",
+    level: "가성비",
+    note: "짐이 아주 많지 않으면 가장 무난. 비용 절약에 유리.",
+  },
+  {
+    title: "우버",
+    duration: "약 1시간 ~ 1시간 20분",
+    cost: "약 AUD 120~180",
+    level: "편의성",
+    note: "짐 많고 아이 동반이면 제일 편함. 시간은 빠르지만 가격이 높음.",
+  },
+  {
+    title: "택시",
+    duration: "약 1시간 ~ 1시간 20분",
+    cost: "약 AUD 150~200+",
+    level: "즉시성",
+    note: "바로 타기 쉽지만 우버보다 더 비싸질 수 있음.",
+  },
 ];
 
 const flightBookings: FlightBooking[] = [
@@ -387,7 +404,7 @@ function getOsmEmbedUrl(lat: number, lon: number) {
 
 function getGoogleMapUrl(place: PlaceItem) {
   if (place.link) return place.link;
-  if (place.lat && place.lon) {
+  if (typeof place.lat === "number" && typeof place.lon === "number") {
     return `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`;
   }
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -470,7 +487,29 @@ export default function Home() {
   const [newPlaceMemo, setNewPlaceMemo] = useState("");
   const [placeStatus, setPlaceStatus] = useState("");
 
-  const allPlaces = [...defaultPlaces, ...dbPlaces];
+  const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [editingPlaceId, setEditingPlaceId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editCity, setEditCity] = useState("Sydney");
+  const [editCategory, setEditCategory] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editLink, setEditLink] = useState("");
+  const [editMemo, setEditMemo] = useState("");
+
+  const allPlaces = useMemo(() => [...defaultPlaces, ...dbPlaces], [dbPlaces]);
+
+  const placeCategories = useMemo(() => {
+    const categories = allPlaces
+      .map((place) => place.category)
+      .filter((category): category is string => Boolean(category && category.trim()));
+
+    return ["전체", ...Array.from(new Set(categories))];
+  }, [allPlaces]);
+
+  const filteredPlaces = useMemo(() => {
+    if (selectedCategory === "전체") return allPlaces;
+    return allPlaces.filter((place) => place.category === selectedCategory);
+  }, [allPlaces, selectedCategory]);
 
   const dday = getDDay("2026-06-04");
   const totalFlightCount = flightBookings.length;
@@ -504,7 +543,7 @@ export default function Home() {
 
     if (error) {
       console.error("장소 불러오기 실패:", error);
-      setPlaceStatus("장소 불러오기 실패");
+      setPlaceStatus(`장소 불러오기 실패: ${error.message ?? "권한/연결 확인"}`);
       return;
     }
 
@@ -524,7 +563,7 @@ export default function Home() {
 
   async function addDbPlace() {
     if (!newPlaceName.trim()) {
-      setPlaceStatus("장소명을 입력해줘");
+      setPlaceStatus("장소명을 입력해주세요.");
       return;
     }
 
@@ -541,7 +580,7 @@ export default function Home() {
 
     if (error) {
       console.error("장소 저장 실패:", error);
-      setPlaceStatus("저장 실패");
+      setPlaceStatus(`저장 실패: ${error.message ?? "권한/컬럼 확인"}`);
       return;
     }
 
@@ -550,6 +589,50 @@ export default function Home() {
     setNewPlaceLink("");
     setNewPlaceMemo("");
     setPlaceStatus("저장 완료");
+    fetchDbPlaces();
+  }
+
+  function startEditPlace(place: PlaceItem) {
+    if (!place.id) return;
+
+    setEditingPlaceId(place.id);
+    setEditName(place.name ?? "");
+    setEditCity(place.city ?? "Sydney");
+    setEditCategory(place.category ?? "가고 싶은 장소");
+    setEditAddress(place.address ?? "");
+    setEditLink(place.link ?? "");
+    setEditMemo(place.note ?? "");
+    setOpenPlace(`${place.id}-edit`);
+  }
+
+  async function updateDbPlace(id: string) {
+    if (!editName.trim()) {
+      setPlaceStatus("장소명을 입력해주세요.");
+      return;
+    }
+
+    setPlaceStatus("수정 중");
+
+    const { error } = await supabase
+      .from("places")
+      .update({
+        name: editName.trim(),
+        city: editCity,
+        category: editCategory.trim() || "가고 싶은 장소",
+        address: editAddress.trim(),
+        map_url: editLink.trim(),
+        memo: editMemo.trim(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("장소 수정 실패:", error);
+      setPlaceStatus(`수정 실패: ${error.message ?? "권한/컬럼 확인"}`);
+      return;
+    }
+
+    setEditingPlaceId(null);
+    setPlaceStatus("수정 완료");
     fetchDbPlaces();
   }
 
@@ -563,7 +646,7 @@ export default function Home() {
 
     if (error) {
       console.error("장소 삭제 실패:", error);
-      setPlaceStatus("삭제 실패");
+      setPlaceStatus(`삭제 실패: ${error.message ?? "권한 확인"}`);
       return;
     }
 
@@ -1044,9 +1127,26 @@ export default function Home() {
               </div>
             </AppCard>
 
-            <SectionTitle title="여행지 리스트" sub="카드를 누르면 바로 아래 지도 또는 구글맵 링크가 열려요" />
+            <SectionTitle title="여행지 리스트" sub="카테고리별로 모아보고, 등록한 장소는 수정할 수 있어요" />
+
+            <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+              {placeCategories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ${
+                    selectedCategory === category
+                      ? "bg-slate-900 text-white"
+                      : "border border-slate-200 bg-white text-slate-600"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+
             {["Sydney", "Gold Coast", "Brisbane"].map((city) => {
-              const cityPlaces = allPlaces.filter((p) => p.city === city);
+              const cityPlaces = filteredPlaces.filter((p) => p.city === city);
               if (!cityPlaces.length) return null;
 
               return (
@@ -1055,8 +1155,9 @@ export default function Home() {
                   <div className="space-y-3">
                     {cityPlaces.map((place, index) => {
                       const placeKey = `${place.id ?? place.name}-${index}`;
-                      const isOpen = openPlace === placeKey;
+                      const isOpen = openPlace === placeKey || openPlace === `${place.id}-edit`;
                       const hasMap = typeof place.lat === "number" && typeof place.lon === "number";
+                      const isEditing = editingPlaceId === place.id;
 
                       return (
                         <div key={placeKey}>
@@ -1096,6 +1197,7 @@ export default function Home() {
                                     직접 추가한 장소는 위도/경도 대신 구글맵 링크로 연결됩니다.
                                   </div>
                                 )}
+
                                 <div className="flex flex-wrap gap-2 p-4 md:p-5">
                                   <a
                                     href={getGoogleMapUrl(place)}
@@ -1105,6 +1207,7 @@ export default function Home() {
                                   >
                                     구글맵에서 열기
                                   </a>
+
                                   {place.link ? (
                                     <a
                                       href={place.link}
@@ -1115,6 +1218,16 @@ export default function Home() {
                                       등록한 링크
                                     </a>
                                   ) : null}
+
+                                  {place.isDb ? (
+                                    <button
+                                      onClick={() => startEditPlace(place)}
+                                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
+                                    >
+                                      수정
+                                    </button>
+                                  ) : null}
+
                                   {place.isDb ? (
                                     <button
                                       onClick={() => deleteDbPlace(place.id)}
@@ -1124,6 +1237,67 @@ export default function Home() {
                                     </button>
                                   ) : null}
                                 </div>
+
+                                {isEditing ? (
+                                  <div className="border-t border-slate-200 p-4 md:p-5">
+                                    <div className="grid gap-3 md:grid-cols-2">
+                                      <input
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        placeholder="장소명"
+                                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                                      />
+                                      <select
+                                        value={editCity}
+                                        onChange={(e) => setEditCity(e.target.value)}
+                                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                                      >
+                                        <option value="Sydney">Sydney</option>
+                                        <option value="Gold Coast">Gold Coast</option>
+                                        <option value="Brisbane">Brisbane</option>
+                                      </select>
+                                      <input
+                                        value={editCategory}
+                                        onChange={(e) => setEditCategory(e.target.value)}
+                                        placeholder="카테고리"
+                                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                                      />
+                                      <input
+                                        value={editAddress}
+                                        onChange={(e) => setEditAddress(e.target.value)}
+                                        placeholder="주소"
+                                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                                      />
+                                      <input
+                                        value={editLink}
+                                        onChange={(e) => setEditLink(e.target.value)}
+                                        placeholder="구글맵 링크"
+                                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm md:col-span-2"
+                                      />
+                                      <input
+                                        value={editMemo}
+                                        onChange={(e) => setEditMemo(e.target.value)}
+                                        placeholder="메모"
+                                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm md:col-span-2"
+                                      />
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                      <button
+                                        onClick={() => updateDbPlace(place.id!)}
+                                        className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+                                      >
+                                        수정 저장
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingPlaceId(null)}
+                                        className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
+                                      >
+                                        취소
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : null}
                               </div>
                             )}
                           </AppCard>
