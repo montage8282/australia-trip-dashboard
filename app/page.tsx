@@ -76,10 +76,18 @@ type StayItem = {
   paymentStatus?: string;
 };
 
-type ChecklistGroup = {
+// DB에서 불러온 체크리스트 항목
+type ChecklistDbItem = {
+  id: string;
+  group_title: string;
+  item_text: string;
+  is_checked: boolean;
+};
+
+// 기본 체크리스트 그룹 정의 (항목 없이 그룹명만)
+type ChecklistGroupDef = {
   title: string;
   emoji: string;
-  items: string[];
 };
 
 type WeatherCity = {
@@ -318,37 +326,62 @@ const defaultPlaces: PlaceItem[] = [
   },
 ];
 
-const checklistGroups: ChecklistGroup[] = [
-  {
-    title: "필수 준비물",
-    emoji: "⭐",
-    items: ["여권 (+사본)", "항공·호텔 바우처", "비자", "여행자보험", "로밍 or eSIM", "국제 운전 면허증", "트래블 카드", "현지 화폐", "기내용 목베개"],
-  },
-  {
-    title: "의류",
-    emoji: "🧥",
-    items: ["속옷 및 양말", "잠옷 및 수면안대", "편한 옷 3벌", "겉옷", "슬리퍼", "수영복", "모자", "선글라스", "경량패딩"],
-  },
-  {
-    title: "케어",
-    emoji: "🧴",
-    items: ["필터 샤워기", "스킨케어", "칫솔·치약", "폼클렌징", "샴푸·린스", "바디워시", "썬크림 / 썬스틱", "데오드란트", "위생용품", "마스크팩"],
-  },
-  {
-    title: "전자기기",
-    emoji: "🎧",
-    items: ["멀티 어댑터", "각종 충전기", "보조 배터리", "노트북", "에어팟", "전기장판"],
-  },
-  {
-    title: "비상약",
-    emoji: "🧰",
-    items: ["멀미약", "소화제", "타이레놀", "밴드·후시딘", "알레르기약", "모기 기피제"],
-  },
-  {
-    title: "다이소",
-    emoji: "🤍",
-    items: ["물티슈", "지퍼백", "컵라면·젓가락", "과도칼", "추가가능", "담요"],
-  },
+// 기본 체크리스트 그룹 (항목은 DB에서 관리)
+const checklistGroupDefs: ChecklistGroupDef[] = [
+  { title: "필수 준비물", emoji: "⭐" },
+  { title: "기타", emoji: "🧥" },
+  { title: "케어", emoji: "🧴" },
+  { title: "전자기기", emoji: "🎧" },
+  { title: "비상약", emoji: "🧰" },
+  { title: "다이소", emoji: "🤍" },
+];
+
+// 기본 체크리스트 초기 데이터 (DB에 없을 때 초기 삽입용)
+const defaultChecklistItems: { group_title: string; item_text: string }[] = [
+  { group_title: "필수 준비물", item_text: "여권" },
+  { group_title: "필수 준비물", item_text: "항공·호텔 바우처" },
+  { group_title: "필수 준비물", item_text: "비자" },
+  { group_title: "필수 준비물", item_text: "여행자보험" },
+  { group_title: "필수 준비물", item_text: "로밍 or eSIM" },
+  { group_title: "필수 준비물", item_text: "국제 운전 면허증" },
+  { group_title: "필수 준비물", item_text: "트래블 카드" },
+  { group_title: "필수 준비물", item_text: "현지 화폐" },
+  { group_title: "필수 준비물", item_text: "기내용 목베개" },
+  { group_title: "기타", item_text: "우산" },
+  { group_title: "기타", item_text: "가습마스크" },
+  { group_title: "기타", item_text: "겉옷" },
+  { group_title: "기타", item_text: "슬리퍼" },
+  { group_title: "기타", item_text: "수영복" },
+  { group_title: "기타", item_text: "모자" },
+  { group_title: "기타", item_text: "선글라스" },
+  { group_title: "기타", item_text: "경량패딩" },
+  { group_title: "케어", item_text: "필터 샤워기" },
+  { group_title: "케어", item_text: "스킨케어" },
+  { group_title: "케어", item_text: "칫솔·치약" },
+  { group_title: "케어", item_text: "폼클렌징" },
+  { group_title: "케어", item_text: "샴푸·린스" },
+  { group_title: "케어", item_text: "바디워시" },
+  { group_title: "케어", item_text: "썬크림 / 썬스틱" },
+  { group_title: "케어", item_text: "위생용품" },
+  { group_title: "케어", item_text: "마스크팩" },
+  { group_title: "전자기기", item_text: "멀티 어댑터" },
+  { group_title: "전자기기", item_text: "각종 충전기" },
+  { group_title: "전자기기", item_text: "보조 배터리" },
+  { group_title: "전자기기", item_text: "노트북" },
+  { group_title: "전자기기", item_text: "에어팟" },
+  { group_title: "전자기기", item_text: "전기장판" },
+  { group_title: "비상약", item_text: "멀미약" },
+  { group_title: "비상약", item_text: "소화제" },
+  { group_title: "비상약", item_text: "타이레놀" },
+  { group_title: "비상약", item_text: "밴드·후시딘" },
+  { group_title: "비상약", item_text: "알레르기약" },
+  { group_title: "비상약", item_text: "모기 기피제" },
+  { group_title: "다이소", item_text: "물티슈" },
+  { group_title: "다이소", item_text: "지퍼백" },
+  { group_title: "다이소", item_text: "컵라면·젓가락" },
+  { group_title: "다이소", item_text: "과도칼" },
+  { group_title: "다이소", item_text: "담요" },
+  { group_title: "다이소", item_text: "돗자리" },
 ];
 
 function weatherCodeToText(code?: number) {
@@ -470,6 +503,13 @@ export default function Home() {
   const [newPlaceMemo, setNewPlaceMemo] = useState("");
   const [placeStatus, setPlaceStatus] = useState("");
 
+  // 체크리스트 DB 상태
+  const [checklistItems, setChecklistItems] = useState<ChecklistDbItem[]>([]);
+  const [checklistLoading, setChecklistLoading] = useState(true);
+  // 새 항목 추가용 상태 (그룹별)
+  const [newItemText, setNewItemText] = useState<Record<string, string>>({});
+  const [addingGroup, setAddingGroup] = useState<string | null>(null);
+
   const allPlaces = [...defaultPlaces, ...dbPlaces];
 
   const dday = getDDay("2026-06-04");
@@ -496,6 +536,7 @@ export default function Home() {
   const totalStayCost = stayCostItems.reduce((sum, item) => sum + item.krw, 0);
   const totalCost = totalFlightCost + totalStayCost;
 
+  // ─── 장소 DB ────────────────────────────────────────────
   async function fetchDbPlaces() {
     const { data, error } = await supabase
       .from("places")
@@ -571,8 +612,106 @@ export default function Home() {
     fetchDbPlaces();
   }
 
+  // ─── 체크리스트 DB ───────────────────────────────────────
+  async function fetchChecklistItems() {
+    setChecklistLoading(true);
+    const { data, error } = await supabase
+      .from("checklist_items")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("체크리스트 불러오기 실패:", error);
+      setChecklistLoading(false);
+      return;
+    }
+
+    // DB가 비어있으면 기본 항목 삽입
+    if (!data || data.length === 0) {
+      await supabase.from("checklist_items").insert(
+        defaultChecklistItems.map((item) => ({
+          ...item,
+          is_checked: false,
+        }))
+      );
+      // 다시 불러오기
+      const { data: refetched } = await supabase
+        .from("checklist_items")
+        .select("*")
+        .order("created_at", { ascending: true });
+      setChecklistItems((refetched ?? []) as ChecklistDbItem[]);
+    } else {
+      setChecklistItems(data as ChecklistDbItem[]);
+    }
+
+    setChecklistLoading(false);
+  }
+
+  async function toggleChecklistItem(id: string, currentValue: boolean) {
+    // 낙관적 UI 업데이트
+    setChecklistItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, is_checked: !currentValue } : item
+      )
+    );
+
+    const { error } = await supabase
+      .from("checklist_items")
+      .update({ is_checked: !currentValue })
+      .eq("id", id);
+
+    if (error) {
+      console.error("체크 업데이트 실패:", error);
+      // 실패 시 롤백
+      setChecklistItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, is_checked: currentValue } : item
+        )
+      );
+    }
+  }
+
+  async function addChecklistItem(groupTitle: string) {
+    const text = (newItemText[groupTitle] ?? "").trim();
+    if (!text) return;
+
+    const { data, error } = await supabase
+      .from("checklist_items")
+      .insert({ group_title: groupTitle, item_text: text, is_checked: false })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("항목 추가 실패:", error);
+      return;
+    }
+
+    setChecklistItems((prev) => [...prev, data as ChecklistDbItem]);
+    setNewItemText((prev) => ({ ...prev, [groupTitle]: "" }));
+    setAddingGroup(null);
+  }
+
+  async function deleteChecklistItem(id: string) {
+    const ok = window.confirm("이 항목을 삭제할까요?");
+    if (!ok) return;
+
+    setChecklistItems((prev) => prev.filter((item) => item.id !== id));
+
+    const { error } = await supabase
+      .from("checklist_items")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("항목 삭제 실패:", error);
+      fetchChecklistItems(); // 실패 시 다시 불러오기
+    }
+  }
+
+  // ─── 초기 로드 ───────────────────────────────────────────
   useEffect(() => {
     fetchDbPlaces();
+    fetchChecklistItems();
 
     async function fetchWeather() {
       try {
@@ -1139,27 +1278,115 @@ export default function Home() {
 
         {mainTab === "checklist" && (
           <div className="space-y-5">
-            <SectionTitle title="준비 체크리스트" />
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {checklistGroups.map((group, index) => (
-                <AppCard key={`${group.title}-${index}`} className="p-4 md:p-5">
-                  <h3 className="text-lg font-bold">
-                    {group.emoji} {group.title}
-                  </h3>
-                  <div className="mt-4 space-y-3">
-                    {group.items.map((item, itemIndex) => (
-                      <label
-                        key={`${item}-${itemIndex}`}
-                        className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
-                      >
-                        <input type="checkbox" className="h-4 w-4 accent-slate-900" />
-                        <span className="text-sm text-slate-700">{item}</span>
-                      </label>
-                    ))}
-                  </div>
-                </AppCard>
-              ))}
-            </div>
+            <SectionTitle
+              title="준비 체크리스트"
+              sub="체크하면 모든 기기에서 실시간으로 저장돼요"
+            />
+
+            {checklistLoading ? (
+              <div className="flex items-center justify-center py-16 text-slate-400">
+                불러오는 중...
+              </div>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {checklistGroupDefs.map((group) => {
+                  const groupItems = checklistItems.filter(
+                    (item) => item.group_title === group.title
+                  );
+                  const checkedCount = groupItems.filter((i) => i.is_checked).length;
+                  const isAddingHere = addingGroup === group.title;
+
+                  return (
+                    <AppCard key={group.title} className="p-4 md:p-5">
+                      {/* 그룹 헤더 */}
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold">
+                          {group.emoji} {group.title}
+                        </h3>
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                          {checkedCount}/{groupItems.length}
+                        </span>
+                      </div>
+
+                      {/* 항목 리스트 */}
+                      <div className="mt-4 space-y-2">
+                        {groupItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={item.is_checked}
+                              onChange={() => toggleChecklistItem(item.id, item.is_checked)}
+                              className="h-4 w-4 flex-shrink-0 accent-slate-900"
+                            />
+                            <span
+                              className={`flex-1 text-sm ${
+                                item.is_checked
+                                  ? "text-slate-400 line-through"
+                                  : "text-slate-700"
+                              }`}
+                            >
+                              {item.item_text}
+                            </span>
+                            {/* 삭제 버튼 */}
+                            <button
+                              onClick={() => deleteChecklistItem(item.id)}
+                              className="flex-shrink-0 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 hover:text-rose-400"
+                              title="삭제"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* 항목 추가 영역 */}
+                      {isAddingHere ? (
+                        <div className="mt-3 flex gap-2">
+                          <input
+                            autoFocus
+                            value={newItemText[group.title] ?? ""}
+                            onChange={(e) =>
+                              setNewItemText((prev) => ({
+                                ...prev,
+                                [group.title]: e.target.value,
+                              }))
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") addChecklistItem(group.title);
+                              if (e.key === "Escape") setAddingGroup(null);
+                            }}
+                            placeholder="항목 입력 후 Enter"
+                            className="flex-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+                          />
+                          <button
+                            onClick={() => addChecklistItem(group.title)}
+                            className="rounded-full bg-slate-900 px-3 py-2 text-xs font-medium text-white"
+                          >
+                            추가
+                          </button>
+                          <button
+                            onClick={() => setAddingGroup(null)}
+                            className="rounded-full border border-slate-200 px-3 py-2 text-xs text-slate-500"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setAddingGroup(group.title)}
+                          className="mt-3 w-full rounded-2xl border border-dashed border-slate-200 py-2 text-sm text-slate-400 hover:border-slate-300 hover:text-slate-600"
+                        >
+                          + 항목 추가
+                        </button>
+                      )}
+                    </AppCard>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
